@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code vs Codex - The Movie</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Rajdhani', sans-serif;
+    cursor: none;
+  }
+
+  canvas#stars { position: fixed; top: 0; left: 0; z-index: 0; }
+
+  #movie {
+    position: relative;
+    z-index: 1;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .scene {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    pointer-events: none;
+  }
+
+  .scene.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ── OPENING ── */
+  .studio-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.4rem;
+    color: #555;
+    letter-spacing: 12px;
+    text-transform: uppercase;
+    animation: fadeInUp 2s ease forwards;
+  }
+
+  /* ── TITLE ── */
+  .title-container { text-align: center; }
+
+  .title-vs {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem;
+    color: #ff4444;
+    text-shadow: 0 0 30px #ff4444, 0 0 60px #ff000066;
+    letter-spacing: 20px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .title-claude {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 4.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #d4a574, #c8956c, #e8c4a0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 30px #d4a57488);
+    animation: glowClaude 3s ease-in-out infinite;
+  }
+
+  .title-codex {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 4.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #00ff88, #00cc66, #88ffbb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 30px #00ff8888);
+    animation: glowCodex 3s ease-in-out infinite;
+  }
+
+  /* ── CHARACTERS ── */
+  .character-intro {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+    width: 100%;
+    padding: 0 10%;
+  }
+
+  .char-card {
+    text-align: center;
+    padding: 40px;
+    border-radius: 20px;
+    width: 350px;
+    animation: slideUp 1s ease forwards;
+  }
+
+  .char-card.claude-card {
+    background: radial-gradient(ellipse at center, #d4a57415 0%, transparent 70%);
+    border: 1px solid #d4a57433;
+  }
+
+  .char-card.codex-card {
+    background: radial-gradient(ellipse at center, #00ff8815 0%, transparent 70%);
+    border: 1px solid #00ff8833;
+  }
+
+  .char-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+  }
+
+  .claude-avatar {
+    background: linear-gradient(135deg, #d4a574, #a0704c);
+    box-shadow: 0 0 40px #d4a57466;
+    color: #fff;
+  }
+
+  .codex-avatar {
+    background: linear-gradient(135deg, #00ff88, #008844);
+    box-shadow: 0 0 40px #00ff8866;
+    color: #000;
+  }
+
+  .char-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .claude-name { color: #d4a574; }
+  .codex-name { color: #00ff88; }
+
+  .char-title {
+    font-size: 1rem;
+    color: #888;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* ── BATTLE ARENA ── */
+  .arena {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    position: relative;
+  }
+
+  .arena-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px;
+    position: relative;
+  }
+
+  .arena-left {
+    background: linear-gradient(135deg, #0a0500 0%, #1a0f05 100%);
+    border-right: 2px solid #d4a57433;
+    align-items: flex-end;
+  }
+
+  .arena-right {
+    background: linear-gradient(135deg, #000a04 0%, #001a0a 100%);
+    border-left: 2px solid #00ff8833;
+    align-items: flex-start;
+  }
+
+  .arena-divider {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, transparent, #ff4444, #ff8800, #ff4444, transparent);
+    z-index: 5;
+    animation: dividePulse 2s ease-in-out infinite;
+  }
+
+  .code-window {
+    background: #0d1117;
+    border-radius: 12px;
+    padding: 0;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 40px #00000088;
+    overflow: hidden;
+  }
+
+  .code-header {
+    background: #161b22;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .code-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .dot-red { background: #ff5f56; }
+  .dot-yellow { background: #ffbd2e; }
+  .dot-green { background: #27c93f; }
+
+  .code-filename {
+    margin-left: 10px;
+    font-size: 0.85rem;
+    color: #8b949e;
+    font-family: monospace;
+  }
+
+  .code-body {
+    padding: 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: #c9d1d9;
+    min-height: 200px;
+  }
+
+  .code-body .keyword { color: #ff7b72; }
+  .code-body .string { color: #a5d6ff; }
+  .code-body .func { color: #d2a8ff; }
+  .code-body .comment { color: #8b949e; }
+  .code-body .type { color: #79c0ff; }
+  .code-body .num { color: #ffa657; }
+
+  .typing-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background: #c9d1d9;
+    animation: blink 0.8s step-end infinite;
+    vertical-align: middle;
+  }
+
+  .arena-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+  }
+
+  .claude-label { color: #d4a574; text-align: right; width: 90%; max-width: 500px; }
+  .codex-label { color: #00ff88; text-align: left; width: 90%; max-width: 500px; }
+
+  /* ── DIALOGUE ── */
+  .dialogue-box {
+    text-align: center;
+    max-width: 800px;
+    padding: 40px;
+  }
+
+  .dialogue-speaker {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 6px;
+    margin-bottom: 20px;
+  }
+
+  .speaker-claude { color: #d4a574; }
+  .speaker-codex { color: #00ff88; }
+  .speaker-narrator { color: #888; }
+
+  .dialogue-text {
+    font-size: 1.8rem;
+    color: #ddd;
+    line-height: 1.8;
+    font-weight: 300;
+  }
+
+  /* ── CLASH ── */
+  .clash-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .energy-beam-left {
+    position: absolute;
+    left: 0;
+    width: 55%;
+    height: 8px;
+    background: linear-gradient(90deg, transparent, #d4a574, #fff);
+    top: 50%;
+    transform: translateY(-50%);
+    animation: beamLeft 0.6s ease-out forwards;
+    box-shadow: 0 0 30px #d4a574, 0 0 60px #d4a57466;
+    border-radius: 4px;
+  }
+
+  .energy-beam-right {
+    position: absolute;
+    right: 0;
+    width: 55%;
+    height: 8px;
+    background: linear-gradient(-90deg, transparent, #00ff88, #fff);
+    top: 50%;
+    transform: translateY(-50%);
+    animation: beamRight 0.6s ease-out forwards;
+    box-shadow: 0 0 30px #00ff88, 0 0 60px #00ff8866;
+    border-radius: 4px;
+  }
+
+  .clash-explosion {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff, #ffaa00, #ff4444, transparent);
+    animation: explode 1.5s ease-out forwards;
+    box-shadow: 0 0 100px #ffaa00, 0 0 200px #ff4444;
+  }
+
+  /* ── SCOREBOARD ── */
+  .scoreboard {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .score-col {
+    text-align: center;
+    width: 300px;
+  }
+
+  .score-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: 3px;
+  }
+
+  .score-bar-container {
+    width: 100%;
+    height: 18px;
+    background: #1a1a2e;
+    border-radius: 9px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .score-bar {
+    height: 100%;
+    border-radius: 9px;
+    width: 0%;
+    transition: width 2s ease;
+  }
+
+  .score-bar.claude-bar { background: linear-gradient(90deg, #d4a574, #e8c4a0); box-shadow: 0 0 15px #d4a57466; }
+  .score-bar.codex-bar { background: linear-gradient(90deg, #00ff88, #88ffbb); box-shadow: 0 0 15px #00ff8866; }
+
+  .score-category {
+    font-size: 0.9rem;
+    color: #666;
+    text-align: left;
+    margin-bottom: 4px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .score-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    color: #aaa;
+    text-align: right;
+    margin-bottom: 12px;
+  }
+
+  .score-divider {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem;
+    color: #ff4444;
+    text-shadow: 0 0 20px #ff444466;
+    letter-spacing: 8px;
+    align-self: flex-start;
+    margin-top: 50px;
+  }
+
+  /* ── FINAL ── */
+  .final-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3rem;
+    font-weight: 900;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .final-glow {
+    background: linear-gradient(135deg, #d4a574, #fff, #00ff88);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 40px #ffffff44);
+    animation: finalGlow 3s ease-in-out infinite;
+  }
+
+  .subtitle {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.2rem;
+    color: #666;
+    margin-top: 30px;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+  }
+
+  /* ── CREDITS ── */
+  .credits {
+    text-align: center;
+  }
+
+  .credits-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    color: #444;
+    letter-spacing: 8px;
+    margin-bottom: 40px;
+  }
+
+  .credit-line {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+
+  .credit-role { color: #888; font-size: 0.85rem; letter-spacing: 4px; text-transform: uppercase; }
+
+  /* ── PROGRESS BAR ── */
+  #progress-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #111;
+    z-index: 100;
+  }
+
+  #progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #d4a574, #ff4444, #00ff88);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  /* ── SKIP BUTTON ── */
+  #skip-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+    background: none;
+    border: 1px solid #333;
+    color: #555;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    padding: 6px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+  }
+
+  #skip-btn:hover { border-color: #888; color: #aaa; }
+
+  /* ── SOUND TOGGLE ── */
+  #sound-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 100;
+    background: none;
+    border: 1px solid #333;
+    color: #555;
+    font-size: 1.2rem;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(60px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+  }
+
+  @keyframes glowClaude {
+    0%, 100% { filter: drop-shadow(0 0 30px #d4a57488); }
+    50% { filter: drop-shadow(0 0 60px #d4a574cc); }
+  }
+
+  @keyframes glowCodex {
+    0%, 100% { filter: drop-shadow(0 0 30px #00ff8888); }
+    50% { filter: drop-shadow(0 0 60px #00ff88cc); }
+  }
+
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  @keyframes dividePulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  @keyframes beamLeft {
+    from { width: 0; left: 10%; }
+    to { width: 45%; left: 0; }
+  }
+
+  @keyframes beamRight {
+    from { width: 0; right: 10%; }
+    to { width: 45%; right: 0; }
+  }
+
+  @keyframes explode {
+    0% { transform: scale(0); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.8; }
+    100% { transform: scale(3); opacity: 0; }
+  }
+
+  @keyframes finalGlow {
+    0%, 100% { filter: drop-shadow(0 0 40px #ffffff22); }
+    50% { filter: drop-shadow(0 0 80px #ffffff66); }
+  }
+
+  @keyframes screenShake {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-8px, 4px); }
+    20% { transform: translate(6px, -6px); }
+    30% { transform: translate(-4px, 8px); }
+    40% { transform: translate(8px, -2px); }
+    50% { transform: translate(-6px, 6px); }
+    60% { transform: translate(4px, -8px); }
+    70% { transform: translate(-8px, 2px); }
+    80% { transform: translate(6px, 6px); }
+    90% { transform: translate(-2px, -4px); }
+  }
+
+  .screen-shake { animation: screenShake 0.5s ease; }
+
+  /* Particle effects */
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: particleFade 2s ease-out forwards;
+  }
+
+  @keyframes particleFade {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0) translateY(-100px); }
+  }
+
+  /* Letterbox bars */
+  .letterbox-top, .letterbox-bottom {
+    position: fixed;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: #000;
+    z-index: 50;
+  }
+  .letterbox-top { top: 0; }
+  .letterbox-bottom { bottom: 0; }
+</style>
+</head>
+<body>
+
+<div class="letterbox-top"></div>
+<div class="letterbox-bottom"></div>
+
+<canvas id="stars"></canvas>
+
+<div id="movie">
+
+  <!-- Scene 0: Studio Logo -->
+  <div class="scene active" id="scene-0">
+    <div class="studio-text" style="animation-delay: 0.5s;">A Claude Code Production</div>
+  </div>
+
+  <!-- Scene 1: Title Card -->
+  <div class="scene" id="scene-1">
+    <div class="title-container">
+      <div class="title-claude">CLAUDE CODE</div>
+      <div class="title-vs">&#9876; &nbsp; V S &nbsp; &#9876;</div>
+      <div class="title-codex">CODEX</div>
+      <div style="margin-top: 40px; color: #444; letter-spacing: 8px; font-size: 0.9rem; text-transform: uppercase;">The Battle for the Terminal</div>
+    </div>
+  </div>
+
+  <!-- Scene 2: Narrator Intro -->
+  <div class="scene" id="scene-2">
+    <div class="dialogue-box">
+      <div class="dialogue-speaker speaker-narrator">NARRATOR</div>
+      <div class="dialogue-text" id="narrator-1"></div>
+    </div>
+  </div>
+
+  <!-- Scene 3: Character Introductions -->
+  <div class="scene" id="scene-3">
+    <div class="character-intro">
+      <div class="char-card claude-card">
+        <div class="char-avatar claude-avatar">C</div>
+        <div class="char-name claude-name">Claude Code</div>
+        <div class="char-title">Anthropic's CLI Agent</div>
+        <div style="color: #888; margin-top: 15px; font-size: 0.9rem; line-height: 1.6;">
+          Thoughtful. Precise. <br>Writes code that reads like poetry.
+        </div>
+      </div>
+      <div style="font-family: 'Orbitron', sans-serif; font-size: 3rem; color: #ff4444; text-shadow: 0 0 30px #ff444466; animation: pulse 1.5s ease-in-out infinite;">VS</div>
+      <div class="char-card codex-card">
+        <div class="char-avatar codex-avatar">X</div>
+        <div class="char-name codex-name">Codex</div>
+        <div class="char-title">OpenAI's CLI Agent</div>
+        <div style="color: #888; margin-top: 15px; font-size: 0.9rem; line-height: 1.6;">
+          Fast. Parallel. <br>Ships code at breakneck speed.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 4: Dialogue - Claude speaks -->
+  <div class="scene" id="scene-4">
+    <div class="dialogue-box">
+      <div class="dialogue-speaker speaker-claude">CLAUDE CODE</div>
+      <div class="dialogue-text" id="claude-dialogue-1"></div>
+    </div>
+  </div>
+
+  <!-- Scene 5: Dialogue - Codex speaks -->
+  <div class="scene" id="scene-5">
+    <div class="dialogue-box">
+      <div class="dialogue-speaker speaker-codex">CODEX</div>
+      <div class="dialogue-text" id="codex-dialogue-1"></div>
+    </div>
+  </div>
+
+  <!-- Scene 6: Battle - Code Arena -->
+  <div class="scene" id="scene-6">
+    <div class="arena">
+      <div class="arena-side arena-left">
+        <div class="arena-label claude-label">CLAUDE CODE</div>
+        <div class="code-window">
+          <div class="code-header">
+            <div class="code-dot dot-red"></div>
+            <div class="code-dot dot-yellow"></div>
+            <div class="code-dot dot-green"></div>
+            <span class="code-filename">solution.py</span>
+          </div>
+          <div class="code-body" id="claude-code"></div>
+        </div>
+      </div>
+      <div class="arena-divider"></div>
+      <div class="arena-side arena-right">
+        <div class="arena-label codex-label">CODEX</div>
+        <div class="code-window">
+          <div class="code-header">
+            <div class="code-dot dot-red"></div>
+            <div class="code-dot dot-yellow"></div>
+            <div class="code-dot dot-green"></div>
+            <span class="code-filename">solution.py</span>
+          </div>
+          <div class="code-body" id="codex-code"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 7: Narrator comment on battle -->
+  <div class="scene" id="scene-7">
+    <div class="dialogue-box">
+      <div class="dialogue-speaker speaker-narrator">NARRATOR</div>
+      <div class="dialogue-text" id="narrator-2"></div>
+    </div>
+  </div>
+
+  <!-- Scene 8: Clash -->
+  <div class="scene" id="scene-8">
+    <div class="clash-container" id="clash-area">
+      <div class="energy-beam-left"></div>
+      <div class="energy-beam-right"></div>
+      <div class="clash-explosion"></div>
+    </div>
+  </div>
+
+  <!-- Scene 9: Scoreboard -->
+  <div class="scene" id="scene-9">
+    <div style="text-align:center; margin-bottom: 40px;">
+      <div style="font-family: 'Orbitron', sans-serif; font-size: 1rem; color: #555; letter-spacing: 8px;">BATTLE RESULTS</div>
+    </div>
+    <div class="scoreboard">
+      <div class="score-col">
+        <div class="score-name claude-name">Claude Code</div>
+        <div id="claude-scores"></div>
+      </div>
+      <div class="score-divider">VS</div>
+      <div class="score-col">
+        <div class="score-name codex-name">Codex</div>
+        <div id="codex-scores"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 10: Claude dialogue 2 -->
+  <div class="scene" id="scene-10">
+    <div class="dialogue-box">
+      <div class="dialogue-speaker speaker-claude">CLAUDE CODE</div>
+      <div class="dialogue-text" id="claude-dialogue-2"></div>
+    </div>
+  </div>
+
+  <!-- Scene 11: Codex dialogue 2 -->
+  <div class="scene" id="scene-11">
+    <div class="dialogue-box">
+      <div class="dialogue-speaker speaker-codex">CODEX</div>
+      <div class="dialogue-text" id="codex-dialogue-2"></div>
+    </div>
+  </div>
+
+  <!-- Scene 12: Final -->
+  <div class="scene" id="scene-12">
+    <div class="final-text final-glow">THE REAL WINNER<br>IS THE DEVELOPER</div>
+    <div class="subtitle">Who wields these tools to build the future</div>
+  </div>
+
+  <!-- Scene 13: Credits -->
+  <div class="scene" id="scene-13">
+    <div class="credits">
+      <div class="credits-title">CREDITS</div>
+      <div class="credit-role">Written, Directed & Produced by</div>
+      <div class="credit-line" style="color: #d4a574; font-size: 1.4rem;">Claude Code</div>
+      <br>
+      <div class="credit-role">Starring</div>
+      <div class="credit-line">Claude Code as Himself</div>
+      <div class="credit-line">Codex as The Rival</div>
+      <br>
+      <div class="credit-role">Visual Effects</div>
+      <div class="credit-line">HTML, CSS & JavaScript</div>
+      <br>
+      <div class="credit-role">Special Thanks</div>
+      <div class="credit-line">Every developer who ships at midnight</div>
+      <br><br>
+      <div style="color: #333; font-size: 0.8rem; letter-spacing: 4px;">NO AI MODELS WERE HARMED IN THE MAKING OF THIS FILM</div>
+      <br>
+      <div style="color: #222; font-size: 0.7rem; letter-spacing: 3px;">&copy; 2026 CLAUDE CODE PRODUCTIONS</div>
+    </div>
+  </div>
+
+</div>
+
+<div id="progress-container"><div id="progress-bar"></div></div>
+<button id="skip-btn" onclick="skipScene()">SKIP &raquo;</button>
+
+<script>
+// ── STARFIELD ──
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const stars = Array.from({ length: 200 }, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  r: Math.random() * 1.5 + 0.3,
+  speed: Math.random() * 0.3 + 0.05,
+  alpha: Math.random()
+}));
+
+function animateStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(s => {
+    s.alpha += (Math.random() - 0.5) * 0.02;
+    s.alpha = Math.max(0.1, Math.min(1, s.alpha));
+    s.y += s.speed;
+    if (s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; }
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 255, 255, ${s.alpha})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(animateStars);
+}
+animateStars();
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+// ── AUDIO CONTEXT (simple synth) ──
+let audioCtx;
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playTone(freq, duration, type = 'sine', vol = 0.08) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+function playTransition() {
+  playTone(220, 0.3, 'sine', 0.06);
+  setTimeout(() => playTone(330, 0.3, 'sine', 0.06), 100);
+}
+
+function playClash() {
+  playTone(80, 0.8, 'sawtooth', 0.1);
+  setTimeout(() => playTone(120, 0.5, 'square', 0.06), 200);
+  setTimeout(() => playTone(60, 1.0, 'triangle', 0.08), 400);
+}
+
+function playTitle() {
+  const notes = [261, 329, 392, 523];
+  notes.forEach((n, i) => setTimeout(() => playTone(n, 0.6, 'sine', 0.05), i * 200));
+}
+
+document.addEventListener('click', () => initAudio(), { once: true });
+
+// ── TYPEWRITER EFFECT ──
+function typeWriter(elementId, text, speed = 35) {
+  return new Promise(resolve => {
+    const el = document.getElementById(elementId);
+    el.innerHTML = '';
+    let i = 0;
+    function type() {
+      if (i < text.length) {
+        el.innerHTML = text.substring(0, i + 1) + '<span class="typing-cursor"></span>';
+        i++;
+        setTimeout(type, speed);
+      } else {
+        el.innerHTML = text;
+        resolve();
+      }
+    }
+    type();
+  });
+}
+
+// ── CODE TYPING EFFECT ──
+function typeCode(elementId, codeHtml, speed = 20) {
+  return new Promise(resolve => {
+    const el = document.getElementById(elementId);
+    const temp = document.createElement('div');
+    temp.innerHTML = codeHtml;
+    const fullText = temp.textContent;
+    const lines = codeHtml.split('\n');
+
+    el.innerHTML = '';
+    let lineIdx = 0;
+    let displayed = '';
+
+    function addLine() {
+      if (lineIdx < lines.length) {
+        displayed += (lineIdx > 0 ? '\n' : '') + lines[lineIdx];
+        el.innerHTML = displayed + '<span class="typing-cursor"></span>';
+        lineIdx++;
+        setTimeout(addLine, speed * 3);
+      } else {
+        el.innerHTML = codeHtml;
+        resolve();
+      }
+    }
+    addLine();
+  });
+}
+
+// ── SCENE MANAGEMENT ──
+let currentScene = 0;
+const totalScenes = 14;
+let transitioning = false;
+
+function showScene(index) {
+  document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+  const scene = document.getElementById(`scene-${index}`);
+  if (scene) scene.classList.add('active');
+
+  const progress = ((index + 1) / totalScenes) * 100;
+  document.getElementById('progress-bar').style.width = progress + '%';
+}
+
+function nextScene() {
+  if (transitioning) return;
+  transitioning = true;
+  currentScene++;
+  if (currentScene >= totalScenes) {
+    currentScene = totalScenes - 1;
+    transitioning = false;
+    return;
+  }
+  playTransition();
+  showScene(currentScene);
+  runSceneAction(currentScene);
+  setTimeout(() => { transitioning = false; }, 800);
+}
+
+function skipScene() {
+  nextScene();
+}
+
+// ── SCENE ACTIONS ──
+const sceneTimings = [3500, 5000, 6000, 5500, 5000, 5500, 8000, 6000, 4000, 7000, 5000, 5500, 6000, 8000];
+
+function runSceneAction(idx) {
+  switch (idx) {
+    case 1:
+      playTitle();
+      break;
+    case 2:
+      typeWriter('narrator-1',
+        'In a world where AI writes the code... two titans emerge from the terminal, each claiming dominion over the developer\'s workflow.');
+      break;
+    case 4:
+      typeWriter('claude-dialogue-1',
+        '"I don\'t just write code. I understand it. I read your codebase, reason about architecture, and craft solutions that belong."');
+      break;
+    case 5:
+      typeWriter('codex-dialogue-1',
+        '"Speed is everything. I spin up sandboxes in parallel, execute tasks concurrently, and ship before you finish your coffee."');
+      break;
+    case 6:
+      const claudeCode = `<span class="keyword">def</span> <span class="func">solve</span>(data):
+    <span class="comment"># Understand the structure first</span>
+    schema = <span class="func">analyze_schema</span>(data)
+    validated = <span class="func">validate</span>(data, schema)
+
+    <span class="comment"># Build with intent</span>
+    result = <span class="func">transform</span>(
+        validated,
+        strategy=<span class="string">"optimal"</span>,
+        safe=<span class="type">True</span>
+    )
+    <span class="keyword">return</span> result`;
+
+      const codexCode = `<span class="keyword">def</span> <span class="func">solve</span>(data):
+    <span class="comment"># Parallel execution</span>
+    tasks = <span class="func">chunk</span>(data, n=<span class="num">8</span>)
+    <span class="keyword">with</span> <span class="type">Pool</span>(<span class="num">8</span>) <span class="keyword">as</span> p:
+        results = p.<span class="func">map</span>(process, tasks)
+
+    <span class="comment"># Ship it fast</span>
+    <span class="keyword">return</span> <span class="func">merge</span>(results)`;
+
+      typeCode('claude-code', claudeCode, 25);
+      typeCode('codex-code', codexCode, 25);
+      break;
+    case 7:
+      typeWriter('narrator-2',
+        'Two philosophies collide. One values depth and precision. The other, raw speed and parallelism. The terminal trembles...');
+      break;
+    case 8:
+      playClash();
+      setTimeout(() => {
+        document.getElementById('movie').classList.add('screen-shake');
+        setTimeout(() => document.getElementById('movie').classList.remove('screen-shake'), 500);
+      }, 600);
+      break;
+    case 9:
+      buildScoreboard();
+      break;
+    case 10:
+      typeWriter('claude-dialogue-2',
+        '"A well-crafted solution saves more time than a fast one that breaks in production. I\'d rather get it right."');
+      break;
+    case 11:
+      typeWriter('codex-dialogue-2',
+        '"Respect. Maybe the real benchmark isn\'t who\'s faster... it\'s who helps developers build what matters."');
+      break;
+  }
+
+  // Auto-advance
+  if (idx < totalScenes - 1) {
+    setTimeout(() => nextScene(), sceneTimings[idx]);
+  }
+}
+
+// ── SCOREBOARD ──
+function buildScoreboard() {
+  const categories = [
+    { name: 'Code Quality', claude: 95, codex: 85 },
+    { name: 'Speed', claude: 80, codex: 92 },
+    { name: 'Context Understanding', claude: 96, codex: 78 },
+    { name: 'Parallel Execution', claude: 70, codex: 95 },
+    { name: 'Safety & Security', claude: 97, codex: 82 },
+    { name: 'Developer Experience', claude: 93, codex: 88 },
+  ];
+
+  let claudeHTML = '';
+  let codexHTML = '';
+
+  categories.forEach((cat, i) => {
+    claudeHTML += `
+      <div class="score-category">${cat.name}</div>
+      <div class="score-bar-container">
+        <div class="score-bar claude-bar" id="cb-${i}" style="width: 0%"></div>
+      </div>
+      <div class="score-value">${cat.claude}/100</div>`;
+    codexHTML += `
+      <div class="score-category">${cat.name}</div>
+      <div class="score-bar-container">
+        <div class="score-bar codex-bar" id="xb-${i}" style="width: 0%"></div>
+      </div>
+      <div class="score-value">${cat.codex}/100</div>`;
+  });
+
+  document.getElementById('claude-scores').innerHTML = claudeHTML;
+  document.getElementById('codex-scores').innerHTML = codexHTML;
+
+  // Animate bars
+  setTimeout(() => {
+    categories.forEach((cat, i) => {
+      document.getElementById(`cb-${i}`).style.width = cat.claude + '%';
+      document.getElementById(`xb-${i}`).style.width = cat.codex + '%';
+    });
+  }, 300);
+}
+
+// ── START ──
+showScene(0);
+runSceneAction(0);
+setTimeout(() => nextScene(), sceneTimings[0]);
+</script>
+
+</body>
+</html>
